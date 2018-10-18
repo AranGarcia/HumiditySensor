@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 from tkinter import font
 
 import util
+from arduinoiface import Reader
 
 PROPS = util.get_config()
 
@@ -52,9 +53,9 @@ class InfoFrame(tk.Frame, CustomWidget):
                            justify="left", text='\n'.join(names))
         lblteam.grid(row=3, columnspan=2)
 
-        self.entrada = tk.StringVar(self, value="Hola")
+        self.measurement = tk.DoubleVar(self, value=0)
         tk.Entry(self, text="Valor de prueba", justify="center", state="readonly",
-            textvariable=self.entrada, width=10).grid(row=5, column=0)
+                 textvariable=self.measurement, width=10).grid(row=5, column=0)
         tk.Label(self, font=lblfont, background=InfoFrame.bgcolor, foreground=InfoFrame.txcolor,
                  text="% de humedad").grid(row=5, column=1)
 
@@ -68,13 +69,16 @@ class MonitorCanvas(Figure, CustomWidget):
         self.master = master
         self.create_widgets()
 
+        # Serial reader
+        r = Reader(PROPS["port"], i.measurement)
+        r.start()
+
     def create_widgets(self):
         ax = self.subplots()
 
-        # print(dir(ax))
-
-        self.x = np.arange(0, 2*np.pi, 0.01)
-        self.line, = ax.plot(self.x, np.sin(self.x))
+        self.x = np.arange(0, 5, 0.01)
+        self.y = [i for i in range(len(self.x))]
+        self.line, = ax.plot(self.x, self.y)
 
         ax.set_ylabel("Porcentaje de humedad")
         ax.set_ybound(-1, 1)

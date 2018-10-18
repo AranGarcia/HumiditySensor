@@ -3,16 +3,33 @@
 }
 
 void loop() {
-  int value = random(0, 1024);
 
   byte buff[10];
   int shift;
-  for(int i = 0; i < 10; ++i){
-    shift = 8 * i;
-    buff[i] = (value >> shift) & 255;
+  int value;
+
+  for(int i = 0; i < 500; ++i){
+    value = i;
+    
+    for(int j = 0; j < 10; ++j){
+      shift = 8 * j;
+      buff[j] = (value >> shift) & 255;
+    }
+
+    Serial.write(buff, sizeof(buff));
+  }
+
+  for(int i = 500; i > 0; --i){
+    value = i;
+    
+    for(int j = 0; j < 10; ++j){
+      shift = 8 * j;
+      buff[j] = (value >> shift) & 255;
+    }
+
+    Serial.write(buff, sizeof(buff));
   }
   
-  
   int bytesSent = Serial.write(buff, sizeof(buff));
-  delay(1000);
+  delay(125);
 }
