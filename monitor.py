@@ -67,21 +67,26 @@ class MonitorCanvas(Figure, CustomWidget):
     def __init__(self, master):
         super(MonitorCanvas, self).__init__(figsize=(5, 4), dpi=100)
         self.master = master
-        self.create_widgets()
+
+        # Plot stuff
+        self.liminf = int(PROPS["liminf"])
+        self.limsup = int(PROPS["limsup"])
 
         # Serial reader
-        r = Reader(PROPS["port"], i.measurement)
-        r.start()
+        self.r = Reader(PROPS["port"], i.measurement, int(PROPS["seconds"]) / 0.01)
+        self.r.start()
 
+        self.create_widgets()
+        
     def create_widgets(self):
         ax = self.subplots()
 
-        self.x = np.arange(0, 5, 0.01)
-        self.y = [i for i in range(len(self.x))]
+        self.x = np.arange(0, int(PROPS["seconds"]), 0.01)
+        self.y = np.linspace(self.liminf, self.limsup, len(self.x))
         self.line, = ax.plot(self.x, self.y)
 
         ax.set_ylabel("Porcentaje de humedad")
-        ax.set_ybound(-1, 1)
+        ax.set_ybound(int(PROPS["liminf"]), int(PROPS["limsup"]))
         self.set_tight_layout(True)
 
         canvas = FigureCanvasTkAgg(self, master=self.master)
@@ -89,22 +94,25 @@ class MonitorCanvas(Figure, CustomWidget):
 
         ani = animation.FuncAnimation(
             self, self.animate, init_func=self.init,
-            interval=2, blit=True, save_count=50)
+            interval=32, blit=True, save_count=50)
 
         canvas.draw()
 
     def init(self):
-        self.line.set_ydata([np.nan] * len(self.x))
+        self.line.set_ydata(np.zeros(len(self.x)))
         return self.line,
 
     def animate(self, i):
-        self.line.set_ydata(np.sin(self.x + i / 100))
+        # self.line.set_ydata(np.linspace(self.liminf, self.limsup, len(self.x)))
+        self.line.set_ydata(self.r.measures)
         return self.line,
 
 
 if __name__ == '__main__':
     root = tk.Tk()
     root.title("Sensor de humedad")
+    icon = tk.PhotoImage(file='water-drop.png')
+    root.tk.call('wm', 'iconphoto', root._w, icon)
 
     i = InfoFrame(root)
     m = MonitorCanvas(root)
