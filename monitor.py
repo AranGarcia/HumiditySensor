@@ -4,6 +4,7 @@
 import numpy as np
 import tkinter as tk
 import matplotlib.animation as animation
+import serial
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -73,26 +74,28 @@ class MonitorCanvas(Figure, CustomWidget):
         self.limsup = int(PROPS["limsup"])
 
         # Serial reader
-        self.r = Reader(PROPS["port"], i.measurement, int(PROPS["seconds"]) / 0.01)
+        self.r = Reader(PROPS["port"], i.measurement,
+                        int(PROPS["seconds"]) / 0.01)
+
         self.r.start()
 
         self.create_widgets()
-        
+
     def create_widgets(self):
         ax = self.subplots()
 
         self.x = np.arange(0, int(PROPS["seconds"]), 0.01)
-        self.y = np.linspace(self.liminf, self.limsup, len(self.x))
+        self.y = np.zeros(len(self.x))
         self.line, = ax.plot(self.x, self.y)
 
         ax.set_ylabel("Porcentaje de humedad")
-        ax.set_ybound(int(PROPS["liminf"]), int(PROPS["limsup"]))
+        ax.set_ybound(0, 105)
         self.set_tight_layout(True)
 
         canvas = FigureCanvasTkAgg(self, master=self.master)
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-        ani = animation.FuncAnimation(
+        self.ani = animation.FuncAnimation(
             self, self.animate, init_func=self.init,
             interval=32, blit=True, save_count=50)
 
@@ -103,7 +106,6 @@ class MonitorCanvas(Figure, CustomWidget):
         return self.line,
 
     def animate(self, i):
-        # self.line.set_ydata(np.linspace(self.liminf, self.limsup, len(self.x)))
         self.line.set_ydata(self.r.measures)
         return self.line,
 

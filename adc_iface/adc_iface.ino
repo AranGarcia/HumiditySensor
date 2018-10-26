@@ -1,34 +1,15 @@
- void setup() {
+void setup() {
   Serial.begin(115200);
 }
 
 void loop() {
-
-  byte buff[10];
-  int shift;
-  int value;
-
-  for(int i = 0; i < 100; ++i){
-    value = i;
-    
-    for(int j = 0; j < 10; ++j){
-      shift = 8 * j;
-      buff[j] = (value >> shift) & 255;
+  byte adc = 0;
+  for (int i = 2; i  < 10; ++i) {
+    if(digitalRead(i) == HIGH){
+      adc |= (1 << (i - 2));
     }
-
-    Serial.write(buff, sizeof(buff));
-    delay(8);
   }
 
-  for(int i = 100; i > 0; --i){
-    value = i;
-    
-    for(int j = 0; j < 10; ++j){
-      shift = 8 * j;
-      buff[j] = (value >> shift) & 255;
-    }
-
-    Serial.write(buff, sizeof(buff));
-    delay(8);
-  }
+  Serial.write(adc);
+  delay(8);
 }
